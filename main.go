@@ -130,8 +130,7 @@ func part2(input []string) int {
 	return result
 }
 
-func main() {
-
+func day1() {
 	// input := []string{
 	// 	"1abc2",
 	// 	"pqr3stu8vwx",
@@ -162,4 +161,8 @@ func main() {
 	result2 := part2(input)
 	fmt.Println(result2)
 
+}
+
+func main() {
+	day1()
 }
