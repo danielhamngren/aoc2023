@@ -163,6 +163,137 @@ func day1() {
 
 }
 
+func checkRound(round string) (int, int, int) {
+	reDigits := regexp.MustCompile(`\d+`)
+	cubes := strings.Split(round, ",")
+	red := 0
+	green := 0
+	blue := 0
+	for i := range cubes {
+		number, _ := strconv.Atoi(reDigits.FindString(cubes[i]))
+		if strings.Contains(cubes[i], "red") {
+			red += number
+		}
+		if strings.Contains(cubes[i], "green") {
+			green += number
+		}
+		if strings.Contains(cubes[i], "blue") {
+			blue += number
+		}
+	}
+	return red, green, blue
+}
+
+func getRoundBalls(round string) (int, int, int) {
+	reDigits := regexp.MustCompile(`\d+`)
+	cubes := strings.Split(round, ",")
+	red := 0
+	green := 0
+	blue := 0
+	for i := range cubes {
+		number, _ := strconv.Atoi(reDigits.FindString(cubes[i]))
+		if strings.Contains(cubes[i], "red") {
+			red = number
+		}
+		if strings.Contains(cubes[i], "green") {
+			green = number
+		}
+		if strings.Contains(cubes[i], "blue") {
+			blue = number
+		}
+	}
+	return red, green, blue
+}
+
+func checkGamePower(x string) int {
+	tokens := strings.Split(x, ":")
+
+	maxRed := 0
+	maxGreen := 0
+	maxBlue := 0
+
+	reveals := strings.Split(tokens[1], ";")
+	for i := range reveals {
+		red, green, blue := getRoundBalls(reveals[i])
+		if red > maxRed {
+			maxRed = red
+		}
+		if green > maxGreen {
+			maxGreen = green
+		}
+		if blue > maxBlue {
+			maxBlue = blue
+		}
+	}
+
+	return maxRed * maxGreen * maxBlue
+}
+func checkValid(x string) (int, bool) {
+
+	tokens := strings.Split(x, ":")
+	gameId, _ := strconv.Atoi(strings.Fields(tokens[0])[1])
+
+	reveals := strings.Split(tokens[1], ";")
+	for i := range reveals {
+		red, green, blue := checkRound(reveals[i])
+		if red > 12 || green > 13 || blue > 14 {
+			return gameId, false
+		}
+	}
+
+	return gameId, true
+}
+
+func day2part1(input []string) int {
+	// validIds := []int{}
+	idSum := 0
+
+	for i := range input {
+		id, valid := checkValid(input[i])
+		if valid {
+			idSum += id
+		}
+	}
+
+	return idSum
+}
+
+func day2part2(input []string) int {
+	totalPower := 0
+
+	for i := range input {
+		power := checkGamePower(input[i])
+		totalPower += power
+	}
+
+	return totalPower
+}
+
+func day2() {
+
+	// test_input := []string{
+	// 	"Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green",
+	// 	"Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue",
+	// 	"Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red",
+	// 	"Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red",
+	// 	"Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green",
+	// }
+
+	//Read input from file
+	content, err := os.ReadFile("input2")
+	if err != nil {
+		log.Fatal(err)
+	}
+	input := strings.Split(string(content), "\n")
+
+	resultPart1 := day2part1(input)
+	fmt.Println(resultPart1)
+	resultPart2 := day2part2(input)
+	fmt.Println(resultPart2)
+}
+
 func main() {
-	day1()
+	// day1()
+
+	day2()
 }
