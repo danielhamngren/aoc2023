@@ -295,13 +295,8 @@ func day2() {
 }
 
 func main() {
-	// day1()
-
-	//day2()
-
 	dayPtr := flag.Int("day", 0, "day of the problem")
 	flag.Parse()
-	fmt.Println(*dayPtr)
 
 	switch *dayPtr {
 	case 1:
@@ -310,6 +305,11 @@ func main() {
 		day2()
 	case 3:
 		aoc.Day3()
+	case 4:
+		aoc.Day4()
+	default:
+		fmt.Println(*dayPtr, "Not yet implemented")
+
 	}
 
 }
