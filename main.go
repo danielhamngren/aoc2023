@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"main/aoc"
 	"os"
 	"regexp"
 	"strconv"
@@ -295,5 +297,19 @@ func day2() {
 func main() {
 	// day1()
 
-	day2()
+	//day2()
+
+	dayPtr := flag.Int("day", 0, "day of the problem")
+	flag.Parse()
+	fmt.Println(*dayPtr)
+
+	switch *dayPtr {
+	case 1:
+		day1()
+	case 2:
+		day2()
+	case 3:
+		aoc.Day3()
+	}
+
 }
