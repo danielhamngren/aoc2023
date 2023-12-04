@@ -12,6 +12,7 @@ import (
 type ScratchCard struct {
 	winningNumbers []int
 	currentNumbers []int
+	copies         int
 }
 
 func checkWinning(sc ScratchCard) int {
@@ -19,14 +20,10 @@ func checkWinning(sc ScratchCard) int {
 	for _, current := range sc.currentNumbers {
 		for _, winning := range sc.winningNumbers {
 			if winning == current {
-				fmt.Println(winning, current)
-				fmt.Println("ismatch")
-
 				matches++
 			}
 		}
 	}
-	fmt.Println(matches, sc.winningNumbers, sc.currentNumbers)
 
 	if matches == 0 {
 		return 0
@@ -34,18 +31,26 @@ func checkWinning(sc ScratchCard) int {
 	return int(math.Pow(2, float64(matches-1)))
 }
 
-func day4part1(input []string) int {
-	result := 0
+func checkWinningPart2(sc ScratchCard) int {
+	winnings := 0
+	for _, current := range sc.currentNumbers {
+		for _, winning := range sc.winningNumbers {
+			if winning == current {
+				winnings++
+			}
+		}
+	}
 
+	return winnings
+}
+
+func parseInputDay4(input []string) []ScratchCard {
 	// Parse input
 	scratchcards := []ScratchCard{}
 
 	for _, row := range input {
-		fmt.Println(row)
 		content := strings.Split(row, ":")
 		numbersRaw := strings.Split(content[1], "|")
-
-		fmt.Println(numbersRaw[0], numbersRaw[1])
 
 		winningNumbersRaw := strings.Split(strings.TrimSpace(numbersRaw[0]), " ")
 		currentNumbersRaw := strings.Split(strings.TrimSpace(numbersRaw[1]), " ")
@@ -68,14 +73,19 @@ func day4part1(input []string) int {
 			currentNumbers = append(currentNumbers, x)
 		}
 
-		scratchcards = append(scratchcards, ScratchCard{winningNumbers, currentNumbers})
+		scratchcards = append(scratchcards, ScratchCard{winningNumbers, currentNumbers, 1})
 	}
 
-	fmt.Println(scratchcards)
+	return scratchcards
 
-	for i, sc := range scratchcards {
+}
+
+func day4part1(input []string) int {
+	scratchcards := parseInputDay4(input)
+	result := 0
+
+	for _, sc := range scratchcards {
 		winning := checkWinning(sc)
-		fmt.Println("card", i+1, "score", winning)
 		result += winning
 	}
 
@@ -83,7 +93,16 @@ func day4part1(input []string) int {
 }
 
 func day4part2(input []string) int {
+	scratchcards := parseInputDay4(input)
 	result := 0
+
+	for i, sc := range scratchcards {
+		result += sc.copies
+		winnings := checkWinningPart2(sc)
+		for j := 0; j < winnings; j++ {
+			scratchcards[i+1+j].copies += sc.copies
+		}
+	}
 
 	return result
 }
@@ -114,7 +133,7 @@ func Day4() {
 
 	resultPart1 := day4part1(input(false))
 	fmt.Println(resultPart1)
-	resultPart2 := day4part2(input(true))
+	resultPart2 := day4part2(input(false))
 	fmt.Println(resultPart2)
 
 }
