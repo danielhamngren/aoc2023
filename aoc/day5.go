@@ -62,10 +62,8 @@ func parseInputDay5(input []string) ([]int, map[string]Function) {
 
 func executeFunction(f Function, x int) int {
 	for _, section := range f.sections {
-		fmt.Println(section.startDestination, section.startSource, section.sectionRange, x)
 
-		if x >= section.startSource && x <= section.startSource+section.sectionRange {
-			fmt.Println("section valid")
+		if x >= section.startSource && x < section.startSource+section.sectionRange {
 			return section.startDestination + x - section.startSource
 		}
 	}
@@ -74,22 +72,14 @@ func executeFunction(f Function, x int) int {
 }
 
 func executeMaps(functions map[string]Function, x int) int {
-	fmt.Println("seed:", x)
 	x = executeFunction(functions["seed-to-soil"], x)
-	fmt.Println("soil:", x)
 
 	x = executeFunction(functions["soil-to-fertilizer"], x)
-	fmt.Println("fert:", x)
 	x = executeFunction(functions["fertilizer-to-water"], x)
-	fmt.Println("water:", x)
 	x = executeFunction(functions["water-to-light"], x)
-	fmt.Println("light:", x)
 	x = executeFunction(functions["light-to-temperature"], x)
-	fmt.Println("temp:", x)
 	x = executeFunction(functions["temperature-to-humidity"], x)
-	fmt.Println("humidity:", x)
 	x = executeFunction(functions["humidity-to-location"], x)
-	fmt.Println("location:", x)
 
 	return x
 
@@ -121,7 +111,36 @@ func day5part1(input []string) int {
 }
 
 func day5part2(input []string) int {
-	result := 0
+	seeds, m := parseInputDay5(input)
+
+	fmt.Println(seeds, m)
+
+	//TODO: find which seed has the lowest location.
+	//TODO: process the seed numbers using the output of the parse function
+	min_location := math.MaxInt
+	min_seed := seeds[0]
+	counter := 0
+
+	for i := 0; i < len(seeds); i += 2 {
+		fmt.Println("counter:", counter, "i", i, "start seed", seeds[i], "stop seed", seeds[i]+seeds[i+1]-1)
+		for seed := seeds[i]; seed < seeds[i]+seeds[i+1]; seed++ {
+			location := executeMaps(m, seed)
+			if location < min_location {
+				min_seed = seed
+				min_location = location
+				fmt.Println("min_seed", seed, "min_location", location)
+			}
+			counter++
+			if counter%10000000 == 0 {
+
+				fmt.Println("counter:", counter, "i", i, "start seed", seeds[i], "range", seeds[i+1])
+			}
+		}
+	}
+
+	fmt.Println(min_seed, min_location)
+
+	result := min_location
 
 	return result
 }
@@ -179,7 +198,7 @@ func Day5() {
 
 	resultPart1 := day5part1(inputDay5(false))
 	fmt.Println(resultPart1)
-	resultPart2 := day5part2(inputDay5(true))
+	resultPart2 := day5part2(inputDay5(false))
 	fmt.Println(resultPart2)
 
 }
