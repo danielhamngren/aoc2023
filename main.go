@@ -313,6 +313,8 @@ func main() {
 		aoc.Day6()
 	case 7:
 		aoc.Day7()
+	case 8:
+		aoc.Day8()
 	default:
 		fmt.Println(*dayPtr, "Not yet implemented")
 
