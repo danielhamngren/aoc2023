@@ -23,12 +23,10 @@ func parseInputDay8(input []string) (string, map[string]Node) {
 
 	for _, item := range input[2:] {
 		matches := re.FindStringSubmatch(item)
-		fmt.Println(matches, item)
 		node := matches[re.SubexpIndex("node")]
 		left := matches[re.SubexpIndex("left")]
 		right := matches[re.SubexpIndex("right")]
 
-		fmt.Println(node, left, right)
 		nodes[node] = Node{left, right}
 
 	}
@@ -39,7 +37,6 @@ func parseInputDay8(input []string) (string, map[string]Node) {
 
 func day8part1(input []string) int {
 	pattern, nodes := parseInputDay8(input)
-	fmt.Println(pattern, nodes)
 
 	counter := 0
 	currentNode := "AAA"
@@ -63,9 +60,31 @@ func day8part1(input []string) int {
 	return counter
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
+}
+
+func lcm(input []int) int {
+	m := input[0]
+	for _, element := range input[1:] {
+		m = abs(m*element) / gcd(m, element)
+	}
+	return m
+
+}
+
 func day8part2(input []string) int {
 	pattern, nodes := parseInputDay8(input)
-	fmt.Println(pattern, nodes)
 
 	//1.  Find all start nodes
 	currentNodes := []string{}
@@ -77,7 +96,6 @@ func day8part2(input []string) int {
 			startingNodes = append(startingNodes, nodeName)
 		}
 	}
-	fmt.Println("starting nodes", currentNodes)
 	periods := make([]int, len(startingNodes))
 	offsets := make([][]int, len(startingNodes))
 	visitedNodes := make([][]string, len(startingNodes))
@@ -95,7 +113,6 @@ func day8part2(input []string) int {
 			direction := pattern[counter%len(pattern)]
 
 			// for all current Nodes, step forward
-			// fmt.Println(direction, currentNode)
 			if direction == 'L' {
 				currentNodes[i] = nodes[currentNodes[i]].left
 			} else {
@@ -114,54 +131,18 @@ func day8part2(input []string) int {
 				offsets[i] = append(offsets[i], counter)
 			}
 
-			// fmt.Println("cur", currentNodes[i], "start", startingNodes[i])
-
-			// if counter > 10 {
-			// 	break
-			// }
 		}
-		fmt.Println("visited", visitedNodes[i])
-
 	}
-	fmt.Println(periods)
-	fmt.Println(offsets)
 	values := make([]int, len(offsets))
 
-	result := 1
 	for i, offset := range offsets {
 		periods[i] = offset[1] - offset[0]
 		values[i] = offset[0]
 	}
+	fmt.Println(periods)
 
-	for {
-		// find minimum value, add period to that value
-		min := values[0]
-		var ind int
-		for i, val := range values {
-			if val < min {
-				ind = i
-				min = val
-			}
-		}
-		values[ind] += periods[ind]
+	return lcm(periods)
 
-		allEqual := true
-		for i, _ := range values {
-			if values[i] != values[0] {
-				allEqual = false
-				break
-			}
-		}
-
-		fmt.Println(values)
-		if allEqual {
-			return 0
-		}
-
-	}
-	fmt.Println(values)
-
-	return result
 }
 
 func inputDay8(test bool) []string {
