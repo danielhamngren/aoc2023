@@ -56,11 +56,28 @@ func predictNext(m []int) int {
 	if checkAllZero(m) {
 		return 0
 	} else if len(m) == 1 {
-		fmt.Println("-- LENGHT IS ONE --, undefined behaviour!!!")
+		fmt.Println("-- LENGHT IS ONE --, undefined behaviour !!!")
 		// return m[0]
 		return 0
 	} else {
 		return predictNext(diffs) + m[len(m)-1]
+	}
+
+}
+func predictPrevious(m []int) int {
+	fmt.Println(m)
+	diffs := getSliceDifference(m)
+
+	if checkAllZero(m) {
+		return 0
+	} else if len(m) == 1 {
+		fmt.Println("-- LENGHT IS ONE --, undefined behaviour !!!")
+		// return m[0]
+		return 0
+	} else {
+		lastDiff := m[0] - predictPrevious(diffs)
+
+		return lastDiff
 	}
 
 }
@@ -80,12 +97,17 @@ func day9part1(input []string) int {
 }
 
 func day9part2(input []string) int {
-	history := parseInputDay9(input)
+	histories := parseInputDay9(input)
 
-	fmt.Println(history)
+	result := 0
 
-	return 0
+	for _, history := range histories {
+		prev := predictPrevious(history.measurements)
+		fmt.Println("prev", prev)
+		result += prev
+	}
 
+	return result
 }
 
 func inputDay9(test bool) []string {
@@ -93,7 +115,6 @@ func inputDay9(test bool) []string {
 		return []string{"0 3 6 9 12 15",
 			"1 3 6 10 15 21",
 			"10 13 16 21 30 45",
-			"0 1 1 0",
 		}
 	}
 
@@ -109,8 +130,8 @@ func inputDay9(test bool) []string {
 
 func Day9() {
 	resultPart1 := day9part1(inputDay9(false))
-	fmt.Println(resultPart1)
-	// resultPart2 := day9part2(inputDay9(false))
-	// fmt.Println(resultPart2)
+	fmt.Println("part1:", resultPart1)
+	resultPart2 := day9part2(inputDay9(false))
+	fmt.Println("part2:", resultPart2)
 
 }
