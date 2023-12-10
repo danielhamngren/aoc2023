@@ -131,26 +131,59 @@ func day10part1(input []string) int {
 }
 
 func day10part2(input []string) int {
-	return 0
+	pipes, startPos := parseInputDay10(input)
+
+	fmt.Println(startPos)
+	fmt.Println(pipes)
+
+	visited := []Position{startPos}
+
+	current := pipes[startPos.row][startPos.col].connections[0]
+	steps := 1
+
+	for {
+		fmt.Println("current", current, "connections", pipes[current.row][current.col].connections, "visited", visited)
+		visited = append(visited, current)
+		for _, connection := range pipes[current.row][current.col].connections {
+			fmt.Println(connection)
+			if !slices.Contains(visited, connection) {
+				current = connection
+			}
+		}
+
+		fmt.Println(visited)
+		fmt.Println(current)
+		if slices.Contains(visited, current) {
+			break
+		}
+
+		steps++
+
+		fmt.Println("steps", steps)
+	}
+
+	fmt.Println(visited)
+
+	return steps
 }
 
 func inputDay10(test int) []string {
 	if test == 1 {
 		return []string{
-			".....",
-			".S-7.",
-			".|.|.",
-			".L-J.",
-			".....",
+			"-L|F7",
+			"7S-7|",
+			"L|7||",
+			"-L-J|",
+			"L|-JF",
 		}
 	}
 	if test == 2 {
 		return []string{
-			"..F7.",
-			".FJ|.",
-			"SJ.L7",
+			"7-F7-",
+			".FJ|7",
+			"SJLL7",
 			"|F--J",
-			"LJ...",
+			"LJ.LJ",
 		}
 	}
 	if test == 3 {
