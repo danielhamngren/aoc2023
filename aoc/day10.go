@@ -142,16 +142,16 @@ func day10part2(input []string) int {
 	steps := 1
 
 	for {
-		fmt.Println("current", current, "connections", pipes[current.row][current.col].connections, "visited", visited)
+		// fmt.Println("current", current, "connections", pipes[current.row][current.col].connections, "visited", visited)
 		visited = append(visited, current)
 		for _, connection := range pipes[current.row][current.col].connections {
-			fmt.Println(connection)
+			// fmt.Println(connection)
 			if !slices.Contains(visited, connection) {
 				current = connection
 			}
 		}
 
-		fmt.Println(visited)
+		// fmt.Println(visited)
 		fmt.Println(current)
 		if slices.Contains(visited, current) {
 			break
@@ -164,7 +164,185 @@ func day10part2(input []string) int {
 
 	fmt.Println(visited)
 
-	return steps
+	// make all unvisited into dots.
+
+	for row := range pipes {
+		for col := range pipes[row] {
+			if !slices.Contains(visited, Position{row, col}) {
+				pipes[row][col] = Pipe{[]Position{}, "."}
+
+			}
+			fmt.Print(pipes[row][col].pipeType)
+		}
+		fmt.Print("\n")
+	}
+
+	// Traverse all the visited pipes in order. Mark left with O and right with I if pipe type there is "."
+	// I think I need a concept of direction from where you go. UP, DOWN, LEFT, RIGHT.
+
+	// if you go UP, left is (0, -1)
+	// if you go UP, left is (0, 1)
+	// if you go RIGHT, left is (-1, 0)
+	// if you go LEFT, left is (1, 0)
+
+	// This might only be relevant if the type is "- or |", no that is not true.
+
+	for i, current := range visited {
+		var direction string
+
+		var previous Position
+		if i == 0 {
+			previous = visited[len(visited)-1]
+		} else {
+			previous = visited[i-1]
+		}
+
+		if current.row > previous.row {
+			direction = "DOWN"
+		}
+		if current.row < previous.row {
+			direction = "UP"
+		}
+		if current.col > previous.col {
+			direction = "RIGHT"
+		}
+		if current.col < previous.col {
+			direction = "LEFT"
+		}
+		fmt.Println(i, current, direction)
+
+		var left Position
+		var right Position
+		var front Position
+		var turningRight bool
+		if direction == "DOWN" {
+			left = Position{current.row, current.col + 1}
+			right = Position{current.row, current.col - 1}
+			front = Position{current.row + 1, current.col}
+			turningRight = pipes[current.row][current.col].pipeType == "J"
+		}
+		if direction == "UP" {
+			left = Position{current.row, current.col - 1}
+			right = Position{current.row, current.col + 1}
+			front = Position{current.row - 1, current.col}
+			turningRight = pipes[current.row][current.col].pipeType == "F"
+		}
+		if direction == "LEFT" {
+			left = Position{current.row + 1, current.col}
+			right = Position{current.row - 1, current.col}
+			front = Position{current.row, current.col - 1}
+			turningRight = pipes[current.row][current.col].pipeType == "L"
+		}
+		if direction == "RIGHT" {
+			left = Position{current.row - 1, current.col}
+			right = Position{current.row + 1, current.col}
+			front = Position{current.row, current.col + 1}
+			turningRight = pipes[current.row][current.col].pipeType == "7"
+		}
+
+		// This is relevant for all the pipe types
+		fmt.Println(left.row, left.col, right.row, right.col)
+		if left.row >= 0 && left.row < len(pipes) && left.col >= 0 && left.col < len(pipes[0]) {
+			if pipes[left.row][left.col].pipeType == "." {
+				pipes[left.row][left.col].pipeType = "I"
+			}
+		}
+		if right.row >= 0 && right.row < len(pipes) && right.col >= 0 && right.col < len(pipes[0]) {
+			if pipes[right.row][right.col].pipeType == "." {
+				pipes[right.row][right.col].pipeType = "O"
+			}
+		}
+
+		// This is only relevant for bends
+		// Set the pipe in front to inner or outer.
+		if front.row >= 0 && front.row < len(pipes) && front.col >= 0 && front.col < len(pipes[0]) {
+
+			if pipes[front.row][front.col].pipeType == "." {
+				if turningRight {
+					pipes[front.row][front.col].pipeType = "I"
+				} else {
+					pipes[front.row][front.col].pipeType = "O"
+				}
+			}
+		}
+
+	}
+
+	printPipes(pipes)
+
+	// Fill neighbours
+	for numberOfDots(pipes) > 0 {
+		for row := range pipes {
+			for col := range pipes[row] {
+				if pipes[row][col].pipeType == "." {
+					if row > 0 && pipes[row-1][col].pipeType == "I" {
+						pipes[row][col].pipeType = "I"
+					} else if row < len(pipes)-1 && pipes[row+1][col].pipeType == "I" {
+						pipes[row][col].pipeType = "I"
+					} else if col > 0 && pipes[row][col-1].pipeType == "I" {
+						pipes[row][col].pipeType = "I"
+					} else if col < len(pipes[0])-1 && pipes[row][col+1].pipeType == "I" {
+						pipes[row][col].pipeType = "I"
+					}
+
+					if row > 0 && pipes[row-1][col].pipeType == "O" {
+						pipes[row][col].pipeType = "O"
+					} else if row < len(pipes)-1 && pipes[row+1][col].pipeType == "O" {
+						pipes[row][col].pipeType = "O"
+					} else if col > 0 && pipes[row][col-1].pipeType == "O" {
+						pipes[row][col].pipeType = "O"
+					} else if col < len(pipes[0])-1 && pipes[row][col+1].pipeType == "O" {
+						pipes[row][col].pipeType = "O"
+					}
+
+				}
+			}
+		}
+	}
+	fmt.Print("\n")
+	printPipes(pipes)
+	inside, outside := countSides(pipes)
+	fmt.Println("inside:", inside, "outside:", outside)
+
+	return inside
+}
+func printPipes(pipes [][]Pipe) {
+	for row := range pipes {
+		for col := range pipes[row] {
+			fmt.Print(pipes[row][col].pipeType)
+		}
+		fmt.Print("\n")
+	}
+}
+
+func numberOfDots(pipes [][]Pipe) int {
+	dots := 0
+
+	for row := range pipes {
+		for col := range pipes[row] {
+			if pipes[row][col].pipeType == "." {
+				dots++
+			}
+		}
+	}
+	return dots
+}
+
+func countSides(pipes [][]Pipe) (int, int) {
+	inside := 0
+	outside := 0
+
+	for row := range pipes {
+		for col := range pipes[row] {
+			if pipes[row][col].pipeType == "I" {
+				inside++
+			}
+			if pipes[row][col].pipeType == "O" {
+				outside++
+			}
+		}
+	}
+	return inside, outside
 }
 
 func inputDay10(test int) []string {
@@ -199,7 +377,36 @@ func inputDay10(test int) []string {
 			"...........",
 		}
 	}
+	if test == 32 {
+		return []string{
+			"...........",
+			"...........",
+			"...........",
+			".S-------7.",
+			".|F-----7|.",
+			".||.....||.",
+			".||.....||.",
+			".||.....||.",
+			".|L-7.F-J|.",
+			".|..|.|..|.",
+			".L--J.L--J.",
+			"...........",
+		}
+	}
 	if test == 4 {
+		return []string{
+			"..........",
+			".S------7.",
+			".|F----7|.",
+			".||OOOO||.",
+			".||OOOO||.",
+			".|L-7F-J|.",
+			".|II||II|.",
+			".L--JL--J.",
+			"..........",
+		}
+	}
+	if test == 5 {
 		return []string{
 			".F----7F7F7F7F-7....",
 			".|F--7||||||||FJ....",
@@ -213,7 +420,7 @@ func inputDay10(test int) []string {
 			"....L---J.LJ.LJLJ...",
 		}
 	}
-	if test == 5 {
+	if test == 6 {
 		return []string{
 			"FF7FSF7F7F7F7F7F---7",
 			"L|LJ||||||||||||F--J",
@@ -240,7 +447,7 @@ func inputDay10(test int) []string {
 func Day10() {
 	// resultPart1 := day10part1(inputDay10(0))
 	// fmt.Println("part1:", resultPart1)
-	resultPart2 := day10part2(inputDay10(1))
+	resultPart2 := day10part2(inputDay10(0))
 	fmt.Println("part2:", resultPart2)
 
 }
