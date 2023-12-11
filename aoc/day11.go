@@ -4,119 +4,117 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
 	"strings"
 )
 
-type Universe [][]string
+type Universe []Galaxy
+type Galaxy Position
 
 func parseInputDay11(input []string) Universe {
-	u := make(Universe, len(input))
+	u := Universe{}
 
 	for row, line := range input {
-		u[row] = make([]string, len(line))
 		for col, letter := range line {
-			u[row][col] = string(letter)
+			if letter == '#' {
+				u = append(u, Galaxy{row, col})
+			}
 		}
 	}
 
 	return u
 }
 
-func expandUniverse(u Universe) Universe {
-	rows := len(u)
-	cols := len(u[0])
+func expandUniverse(u Universe, expansion int) Universe {
 
-	row := 0
-	col := 0
+	minRow := u[0].row
+	maxRow := u[0].row
+	minCol := u[0].col
+	maxCol := u[0].col
 
-	// Expand rows
-	for row < rows {
-		allEmpty := true
-		for col < cols {
-			if u[row][col] != "." {
-				allEmpty = false
-			}
-			col++
+	for _, galaxy := range u {
+		if galaxy.row > maxRow {
+			maxRow = galaxy.row
 		}
-
-		if allEmpty {
-			dst := make([]string, cols)
-			for i := range dst {
-				dst[i] = "."
-			}
-			u = slices.Insert(u, row, dst)
-			row++
-			rows++
+		if galaxy.row < minRow {
+			minRow = galaxy.row
 		}
-		row++
-		col = 0
+		if galaxy.col < minCol {
+			minCol = galaxy.col
+		}
+		if galaxy.col > maxCol {
+			maxCol = galaxy.col
+		}
 	}
 
-	// Expand cols
-	rows = len(u)
-	cols = len(u[0])
-
-	row = 0
-	col = 0
-
-	for col < cols {
-		allEmpty := true
-		for row < rows {
-			if u[row][col] != "." {
-				allEmpty = false
+	// check rows
+	for row := minRow; row < maxRow; {
+		foundGalaxy := false
+		fmt.Println("row", row)
+		for _, galaxy := range u {
+			if galaxy.row == row {
+				foundGalaxy = true
 			}
-			row++
 		}
-
-		if allEmpty {
-			for irow := range u {
-				u[irow] = slices.Insert(u[irow], col, ".")
+		if !foundGalaxy {
+			// expand for row
+			fmt.Println("Ready to expand")
+			maxRow += expansion - 1
+			for i, galaxy := range u {
+				if galaxy.row > row {
+					fmt.Println("galaxy moved", galaxy)
+					galaxy.row += expansion - 1
+					fmt.Println("to", galaxy)
+					u[i] = galaxy
+				}
 			}
-			col++
-			cols++
+			row += expansion - 1
+
+		}
+		row++
+	}
+
+	// check cols
+	for col := minCol; col < maxCol; {
+		foundGalaxy := false
+		fmt.Println("col", col)
+		for _, galaxy := range u {
+			if galaxy.col == col {
+				foundGalaxy = true
+			}
+		}
+		if !foundGalaxy {
+			// expand for col
+			fmt.Println("Ready to expand")
+			maxCol += expansion - 1
+			for i, galaxy := range u {
+				if galaxy.col > col {
+					fmt.Println("galaxy moved", galaxy)
+					galaxy.col += expansion - 1
+					fmt.Println("to", galaxy)
+					u[i] = galaxy
+				}
+			}
+			col += expansion - 1
+
 		}
 		col++
-		row = 0
 	}
 
 	return u
-
 }
 
 func displayUniverse(u Universe) {
-	for row := range u {
-		for col := range u[row] {
-			fmt.Print(u[row][col])
-		}
-
-		fmt.Print("\n")
-	}
-
-	fmt.Print("\n")
+	fmt.Println(u)
 }
 
-func getGalaxyPositions(u Universe) []Position {
-	ps := []Position{}
-	for row := range u {
-		for col := range u[row] {
-			if u[row][col] == "#" {
-				ps = append(ps, Position{row, col})
-			}
-		}
-	}
+type GalaxyPair []Galaxy
 
-	return ps
-}
-
-type GalaxyPair []Position
-
-func getGalaxyPairs(positions []Position) []GalaxyPair {
+func getGalaxyPairs(u Universe) []GalaxyPair {
 	pairs := []GalaxyPair{}
 
-	for i := 0; i < len(positions); i++ {
+	for i := 0; i < len(u); i++ {
 		for j := 0; j < i; j++ {
-			pairs = append(pairs, []Position{positions[i], positions[j]})
+			pairs = append(pairs, GalaxyPair{u[i], u[j]})
 
 		}
 	}
@@ -143,13 +141,12 @@ func day11part1(input []string) int {
 	universe := parseInputDay11(input)
 
 	displayUniverse(universe)
-	universe = expandUniverse(universe)
+	universe = expandUniverse(universe, 2)
 	displayUniverse(universe)
 
-	galaxyPositions := getGalaxyPositions(universe)
-	fmt.Println(galaxyPositions)
-	galaxyPairs := getGalaxyPairs(galaxyPositions)
-	fmt.Println(len(galaxyPairs))
+	galaxyPairs := getGalaxyPairs(universe)
+	fmt.Println("galaxies:", len(universe))
+	fmt.Println("galaxy pairs:", len(galaxyPairs))
 
 	dist := 0
 	for _, pair := range galaxyPairs {
@@ -162,8 +159,23 @@ func day11part1(input []string) int {
 func day11part2(input []string) int {
 	universe := parseInputDay11(input)
 
-	fmt.Println(universe)
-	return 0
+	displayUniverse(universe)
+	universe = expandUniverse(universe, 1000000)
+	displayUniverse(universe)
+
+	galaxyPairs := getGalaxyPairs(universe)
+	fmt.Println("galaxies:", len(universe))
+	fmt.Println("galaxy pairs:", len(galaxyPairs))
+	fmt.Println(galaxyPairs)
+
+	dist := 0
+	for _, pair := range galaxyPairs {
+		d := pairDistance(pair)
+		fmt.Println("pair", pair, "distance:", d)
+		dist += d
+	}
+
+	return dist
 }
 
 func inputDay11(test int) []string {
@@ -181,6 +193,36 @@ func inputDay11(test int) []string {
 			"#...#.....",
 		}
 	}
+	if test == 2 {
+		return []string{
+			"#.#",
+			"...",
+			"#.#",
+		}
+	}
+	if test == 3 {
+		return []string{
+			"#.##.#",
+		}
+	}
+	if test == 3 {
+		return []string{
+			"#",
+			".",
+			"#",
+			"#",
+			".",
+			"#",
+		}
+	}
+	if test == 4 {
+		return []string{
+			"#.#",
+			"...",
+			"...",
+			"#.#",
+		}
+	}
 	content, err := os.ReadFile("aoc/input/day11")
 	if err != nil {
 		log.Fatal(err)
@@ -192,9 +234,9 @@ func inputDay11(test int) []string {
 }
 
 func Day11() {
-	resultPart1 := day11part1(inputDay11(0))
-	fmt.Println("part1:", resultPart1)
-	// resultPart2 := day11part2(inputDay10(0))
-	// fmt.Println("part2:", resultPart2)
+	// resultPart1 := day11part1(inputDay11(0))
+	// fmt.Println("part1:", resultPart1)
+	resultPart2 := day11part2(inputDay11(0))
+	fmt.Println("part2:", resultPart2)
 
 }
